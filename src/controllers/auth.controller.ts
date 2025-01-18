@@ -25,9 +25,11 @@ export default class AuthController {
             }
 
             const existingUser = await User.findOne({ email });
+
+            console.log('exissssss', existingUser);
+
             if (existingUser) {
                 if (!existingUser.isVerified) {
-                    // Resend verification email if the user is not verified
                     const verificationPin = Math.floor(
                         100000 + Math.random() * 900000,
                     ).toString();
@@ -187,8 +189,6 @@ export default class AuthController {
 
             res.status(200).json({ accessToken, refreshToken });
         } catch (error) {
-            console.log('errrrrrrrrrr', error);
-
             res.status(500).json({ message: error });
         }
     }
@@ -229,8 +229,15 @@ export default class AuthController {
 
     static async resetPassword(req: Request, res: Response): Promise<any> {
         try {
-            const { email, resetPin, password } = req.body;
+            const { email, resetPin, newPassword, confirmNewPassword } =
+                req.body;
             const user = await User.findOne({ email });
+
+            if (newPassword !== confirmNewPassword) {
+                return res
+                    .status(400)
+                    .json({ message: 'Passwords do not match' });
+            }
 
             if (
                 !user ||
@@ -251,7 +258,7 @@ export default class AuthController {
                 return res.status(403).json({ message: 'Invalid reset PIN' });
             }
 
-            user.password = await argon.hash(password);
+            user.password = await argon.hash(newPassword);
             user.resetPasswordPin = '';
             user.resetPasswordExpires = undefined;
 

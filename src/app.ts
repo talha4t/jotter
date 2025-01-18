@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 
 import userRouter from './routes/auth.route';
 import connectDB from './config/db/db.config';
+import MailService from './config/mail/mail.config';
 
 dotenv.config();
 
@@ -20,6 +21,11 @@ app.use('/api/v1/', userRouter);
 
 app.listen(PORT, async () => {
     await connectDB();
+    try {
+        await MailService.verifyConnection();
+    } catch (error) {
+        console.error('Failed to verify mail connection');
+    }
 
     console.log(`Server is running on http://localhost:${PORT}`);
 });

@@ -26,8 +26,6 @@ export default class AuthController {
 
             const existingUser = await User.findOne({ email });
 
-            console.log('exissssss', existingUser);
-
             if (existingUser) {
                 if (!existingUser.isVerified) {
                     const verificationPin = Math.floor(

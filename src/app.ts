@@ -1,9 +1,11 @@
 import express, { Application, Request, Response } from 'express';
 import dotenv from 'dotenv';
 
-import userRouter from './routes/auth.route';
 import connectDB from './config/db/db.config';
 import MailService from './config/mail/mail.config';
+
+import authenticationRoutes from './routes/auth.route';
+import imageRoutes from './routes/image.route';
 
 dotenv.config();
 
@@ -17,10 +19,15 @@ app.get('/', (req: Request, res: Response) => {
     res.send('Storage Management API is running!');
 });
 
-app.use('/api/v1/', userRouter);
+app.use('/api/v1/auth', authenticationRoutes);
+app.use('/api/v1/images', imageRoutes);
 
 app.listen(PORT, async () => {
     await connectDB();
+
+    /*
+        Mail Service Up & Down Function 
+    */
     try {
         await MailService.verifyConnection();
     } catch (error) {

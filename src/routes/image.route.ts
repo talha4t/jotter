@@ -8,11 +8,11 @@ const router = Router();
 router.get('/', ImageController.list);
 
 router.post('/upload', uploadMiddleware, ImageController.upload);
-router.post('/:id/copy', ImageController.copyFile);
-router.post('/:id/duplicate', ImageController.duplicateFile);
+router.post('/copy/:id', ImageController.copyFile);
+router.post('/duplicate/:id', ImageController.duplicateFile);
 
-router.patch('/:id/rename', ImageController.renameFile);
-router.patch('/:id/move', ImageController.moveFile);
+router.patch('/rename/:id', ImageController.renameFile);
+router.patch('/move/:id', ImageController.moveFile);
 
 router.delete('/:id', ImageController.deleteFile);
 export default router;

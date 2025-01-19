@@ -6,7 +6,7 @@ import { Request } from 'express';
 export const multerOptions = {
     storage: diskStorage({
         destination: (req, file, cb) => {
-            const uploadPath = path.join(__dirname, '../../public/pdfs');
+            const uploadPath = path.join(__dirname, '../../public/temp/pdfs');
 
             if (!fs.existsSync(uploadPath)) {
                 fs.mkdirSync(uploadPath, { recursive: true });

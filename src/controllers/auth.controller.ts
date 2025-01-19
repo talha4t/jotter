@@ -75,7 +75,6 @@ export default class AuthController {
                     'User registered. Verify your email to activate your account.',
             });
         } catch (error) {
-            console.error('Error during registration:', error);
             return res.status(500).json({ message: 'Internal server error' });
         }
     }
@@ -147,8 +146,6 @@ export default class AuthController {
                 .status(200)
                 .json({ message: 'Email verified successfully' });
         } catch (error) {
-            console.error('Error during email verification:', error);
-
             return res.status(500).json({ message: 'Internal server error' });
         }
     }
@@ -210,8 +207,6 @@ export default class AuthController {
                 message: 'If email exists, reset PIN sent',
             });
         } catch (error) {
-            console.error('Error during forgot password:', error);
-
             res.status(500).json({ message: 'Internal server error' });
         }
     }
@@ -255,8 +250,6 @@ export default class AuthController {
 
             res.status(200).json({ message: 'Password reset successful' });
         } catch (error) {
-            console.error('Error during password reset:', error);
-
             res.status(500).json({ message: 'Internal server error' });
         }
     }
@@ -296,7 +289,56 @@ export default class AuthController {
                 .status(200)
                 .json({ message: 'Verification email resent' });
         } catch (error) {
-            console.error('Error during PIN resend:', error);
+            return res.status(500).json({ message: 'Internal server error' });
+        }
+    }
+    static async changePassword(req: Request, res: Response): Promise<any> {
+        try {
+            const { currentPassword, newPassword, confirmNewPassword } =
+                req.body;
+
+            if (!currentPassword || !newPassword || !confirmNewPassword) {
+                return res
+                    .status(400)
+                    .json({ message: 'All fields are required' });
+            }
+
+            if (newPassword !== confirmNewPassword) {
+                return res
+                    .status(400)
+                    .json({ message: 'Passwords do not match' });
+            }
+
+            const userId = req.user?.sub;
+            if (!userId) {
+                return res.status(401).json({ message: 'Unauthorized' });
+            }
+
+            const user = await User.findById(userId);
+            if (!user) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+
+            const isPasswordValid = await argon.verify(
+                user.password,
+                currentPassword,
+            );
+            if (!isPasswordValid) {
+                return res
+                    .status(400)
+                    .json({ message: 'Current password is incorrect' });
+            }
+
+            const hashedNewPassword = await argon.hash(newPassword);
+
+            user.password = hashedNewPassword;
+            await user.save();
+
+            return res
+                .status(200)
+                .json({ message: 'Password changed successfully' });
+        } catch (error) {
+            console.error('Error during password change:', error);
             return res.status(500).json({ message: 'Internal server error' });
         }
     }
@@ -324,7 +366,6 @@ export default class AuthController {
 
             return res.status(200).json({ message: 'Logged out successfully' });
         } catch (error) {
-            console.error('Error during logout:', error);
             return res.status(500).json({ message: 'Internal server error' });
         }
     }

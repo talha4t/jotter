@@ -20,6 +20,12 @@ authRouter.post(
 
 authRouter.patch('/edit-user', authenticateToken, AuthController.editUserInfo);
 
+authRouter.put(
+    '/change-password',
+    authenticateToken,
+    AuthController.changePassword,
+);
+
 authRouter.delete(
     '/delete-account',
     authenticateToken,

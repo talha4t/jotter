@@ -10,6 +10,7 @@ import imageRouter from './routes/image.route';
 import pdfRouter from './routes/pdf.route';
 import fileRouter from './routes/file.route';
 import statsRouter from './routes/stats.route';
+import favouriteRouter from './routes/favourite.route';
 
 dotenv.config();
 
@@ -28,11 +29,11 @@ app.use('/api/v1/images', imageRouter);
 app.use('/api/v1/pdfs', pdfRouter);
 app.use('/api/v1/files', fileRouter);
 app.use('/api/v1/stats', statsRouter);
+app.use('/api/v1/favourites', favouriteRouter);
 
 app.listen(PORT, async () => {
     await connectDB();
 
-    // Mail Service Up & Down Function
     try {
         await MailService.verifyConnection();
     } catch (error) {

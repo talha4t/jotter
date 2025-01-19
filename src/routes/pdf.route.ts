@@ -7,8 +7,9 @@ const pdfRouter = Router();
 pdfRouter.get('/', PdfController.list);
 
 pdfRouter.post('/upload', uploadMiddleware, PdfController.upload);
-pdfRouter.post('/:id/copy', PdfController.copyFile);
-pdfRouter.post('/:id/duplicate', PdfController.duplicateFile);
+pdfRouter.post('/copy/:id', PdfController.copyFile);
+pdfRouter.post('/duplicate/:id', PdfController.duplicateFile);
+pdfRouter.post('/favourite/:id', PdfController.isFavourite);
 
 pdfRouter.patch('/rename/:id', PdfController.renameFile);
 pdfRouter.patch('/move/:id', PdfController.moveFile);

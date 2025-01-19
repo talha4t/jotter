@@ -1,17 +1,10 @@
 import { Request, Response } from 'express';
 
-import { verifyToken } from '../utils/token.util';
-
 import Image from '../models/Image.model';
 
 export default class ImageController {
     static async upload(req: Request, res: Response): Promise<any> {
         try {
-            const token = req.headers.authorization?.split(' ')[1];
-            if (!token || !(await verifyToken(token))) {
-                return res.status(401).json({ error: 'Unauthorized' });
-            }
-
             const { originalname, path: filePath, size } = req.file!;
             const name = originalname;
 

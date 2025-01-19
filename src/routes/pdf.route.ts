@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import PdfController from '../controllers/pdf.controller';
-import { uploadMiddleware } from '../middlewares/multer.middleware';
+import { uploadMiddleware } from '../middlewares/multer-pdf.middleware';
 
 const pdfRouter = Router();
 

@@ -4,9 +4,12 @@ import dotenv from 'dotenv';
 import connectDB from './config/db/db.config';
 import MailService from './config/mail/mail.config';
 
-import authenticationRoutes from './routes/auth.route';
-import imageRoutes from './routes/image.route';
-import pdfRoutes from './routes/pdf.route';
+// All routes
+import authRouter from './routes/auth.route';
+import imageRouter from './routes/image.route';
+import pdfRouter from './routes/pdf.route';
+import fileRouter from './routes/file.route';
+import statsRouter from './routes/stats.route';
 
 dotenv.config();
 
@@ -20,16 +23,16 @@ app.get('/', (req: Request, res: Response) => {
     res.send('Storage Management API is running!');
 });
 
-app.use('/api/v1/auth', authenticationRoutes);
-app.use('/api/v1/images', imageRoutes);
-app.use('/api/v1/pdfs', pdfRoutes);
+app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/images', imageRouter);
+app.use('/api/v1/pdfs', pdfRouter);
+app.use('/api/v1/files', fileRouter);
+app.use('/api/v1/stats', statsRouter);
 
 app.listen(PORT, async () => {
     await connectDB();
 
-    /*
-        Mail Service Up & Down Function 
-    */
+    // Mail Service Up & Down Function
     try {
         await MailService.verifyConnection();
     } catch (error) {

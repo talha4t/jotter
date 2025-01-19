@@ -1,18 +1,19 @@
 import { Router } from 'express';
 
 import ImageController from '../controllers/image.controller';
-import { uploadMiddleware } from '../middlewares/multer.middleware';
+import { uploadMiddleware } from '../middlewares/multer-image.middleware';
 
-const router = Router();
+const imageRouter = Router();
 
-router.get('/', ImageController.list);
+imageRouter.get('/', ImageController.list);
 
-router.post('/upload', uploadMiddleware, ImageController.upload);
-router.post('/copy/:id', ImageController.copyFile);
-router.post('/duplicate/:id', ImageController.duplicateFile);
+imageRouter.post('/upload', uploadMiddleware, ImageController.upload);
+imageRouter.post('/copy/:id', ImageController.copyFile);
+imageRouter.post('/duplicate/:id', ImageController.duplicateFile);
 
-router.patch('/rename/:id', ImageController.renameFile);
-router.patch('/move/:id', ImageController.moveFile);
+imageRouter.patch('/rename/:id', ImageController.renameFile);
+imageRouter.patch('/move/:id', ImageController.moveFile);
 
-router.delete('/:id', ImageController.deleteFile);
-export default router;
+imageRouter.delete('/:id', ImageController.deleteFile);
+
+export default imageRouter;

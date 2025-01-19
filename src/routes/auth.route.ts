@@ -20,4 +20,10 @@ authRouter.post(
 
 authRouter.patch('/edit-user', authenticateToken, AuthController.editUserInfo);
 
+authRouter.delete(
+    '/delete-account',
+    authenticateToken,
+    AuthController.deleteAccount,
+);
+
 export default authRouter;

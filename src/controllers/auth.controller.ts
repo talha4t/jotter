@@ -116,34 +116,6 @@ export default class AuthController {
         }
     }
 
-    static async logout(req: Request, res: Response): Promise<any> {
-        try {
-            const { refreshToken } = req.body;
-
-            if (!refreshToken) {
-                return res
-                    .status(400)
-                    .json({ message: 'Refresh token is required' });
-            }
-
-            const user = await User.findOne({ refreshToken });
-
-            if (!user) {
-                return res
-                    .status(200)
-                    .json({ message: 'Logged out successfully' });
-            }
-
-            user.refreshToken = '';
-            await user.save();
-
-            return res.status(200).json({ message: 'Logged out successfully' });
-        } catch (error) {
-            console.error('Error during logout:', error);
-            return res.status(500).json({ message: 'Internal server error' });
-        }
-    }
-
     static async verifyEmail(req: Request, res: Response): Promise<any> {
         try {
             const { email, verificationPin } = req.body;
@@ -329,6 +301,56 @@ export default class AuthController {
         }
     }
 
+    static async logout(req: Request, res: Response): Promise<any> {
+        try {
+            const { refreshToken } = req.body;
+
+            if (!refreshToken) {
+                return res
+                    .status(400)
+                    .json({ message: 'Refresh token is required' });
+            }
+
+            const user = await User.findOne({ refreshToken });
+
+            if (!user) {
+                return res
+                    .status(200)
+                    .json({ message: 'Logged out successfully' });
+            }
+
+            user.refreshToken = '';
+            await user.save();
+
+            return res.status(200).json({ message: 'Logged out successfully' });
+        } catch (error) {
+            console.error('Error during logout:', error);
+            return res.status(500).json({ message: 'Internal server error' });
+        }
+    }
+
+    static async deleteAccount(req: Request, res: Response): Promise<any> {
+        try {
+            const userId = req.user?.sub;
+            if (!userId) {
+                return res
+                    .status(400)
+                    .json({ message: 'User not authenticated' });
+            }
+
+            const user = await User.findByIdAndDelete(userId);
+
+            if (!user) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+
+            return res
+                .status(200)
+                .json({ message: 'Account deleted successfully' });
+        } catch (error) {
+            return res.status(500).json({ message: 'Internal server error' });
+        }
+    }
     static async refreshToken(req: Request, res: Response): Promise<any> {
         try {
             const { refreshToken } = req.body;

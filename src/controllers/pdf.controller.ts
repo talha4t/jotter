@@ -2,9 +2,9 @@ import { Request, Response } from 'express';
 
 import { verifyToken } from '../utils/token.util';
 
-import Image from '../models/Image.model';
+import Pdf from '../models/pdf.model';
 
-export default class ImageController {
+export default class PdfController {
     static async upload(req: Request, res: Response): Promise<any> {
         try {
             const token = req.headers.authorization?.split(' ')[1];
@@ -15,47 +15,47 @@ export default class ImageController {
             const { originalname, path: filePath, size } = req.file!;
             const name = originalname;
 
-            const existingImage = await Image.findOne({ name });
-            if (existingImage) {
+            const existingPdf = await Pdf.findOne({ name });
+            if (existingPdf) {
                 return res.status(400).json({
                     error: 'A file with the same name already exists.',
                 });
             }
 
-            const newImage = new Image({ name, path: filePath, size });
-            await newImage.save();
+            const newPdf = new Pdf({ name, path: filePath, size });
+            await newPdf.save();
 
             return res.status(201).json({
-                message: 'Image uploaded successfully.',
-                data: newImage,
+                message: 'PDF uploaded successfully.',
+                data: newPdf,
             });
         } catch (error) {
-            return res.status(500).json({ error: 'Failed to upload image.' });
+            return res.status(500).json({ error: 'Failed to upload PDF.' });
         }
     }
 
     static async list(req: Request, res: Response): Promise<any> {
         try {
-            const images = await Image.find();
+            const pdfs = await Pdf.find();
 
-            return res.status(200).json(images);
+            return res.status(200).json(pdfs);
         } catch (error) {
-            return res.status(500).json({ error: 'Failed to fetch images.' });
+            return res.status(500).json({ error: 'Failed to fetch PDFs.' });
         }
     }
 
     static async copyFile(req: Request, res: Response): Promise<any> {
         try {
             const { id } = req.params;
-            const image = await Image.findById(id);
+            const pdf = await Pdf.findById(id);
 
-            if (!image) {
+            if (!pdf) {
                 return res.status(404).json({ error: 'File not found.' });
             }
 
-            const newName = `${image.name.split('.')[0]}_copy.${image.name.split('.').pop()}`;
-            const copiedFile = new Image({
-                ...image.toObject(),
+            const newName = `${pdf.name.split('.')[0]}_copy.${pdf.name.split('.').pop()}`;
+            const copiedFile = new Pdf({
+                ...pdf.toObject(),
                 name: newName,
                 _id: undefined,
             });
@@ -76,24 +76,24 @@ export default class ImageController {
             const { id } = req.params;
             const { newName } = req.body;
 
-            const existingImage = await Image.findOne({ name: newName });
-            if (existingImage) {
+            const existingPdf = await Pdf.findOne({ name: newName });
+            if (existingPdf) {
                 return res
                     .status(400)
                     .json({ error: 'A file with this name already exists.' });
             }
 
-            const image = await Image.findById(id);
-            if (!image) {
+            const pdf = await Pdf.findById(id);
+            if (!pdf) {
                 return res.status(404).json({ error: 'File not found.' });
             }
 
-            image.name = newName;
-            await image.save();
+            pdf.name = newName;
+            await pdf.save();
 
             return res
                 .status(200)
-                .json({ message: 'File renamed successfully.', data: image });
+                .json({ message: 'File renamed successfully.', data: pdf });
         } catch (error) {
             return res.status(500).json({ error: 'Failed to rename file.' });
         }
@@ -102,15 +102,15 @@ export default class ImageController {
     static async duplicateFile(req: Request, res: Response): Promise<any> {
         try {
             const { id } = req.params;
-            const image = await Image.findById(id);
+            const pdf = await Pdf.findById(id);
 
-            if (!image) {
+            if (!pdf) {
                 return res.status(404).json({ error: 'File not found.' });
             }
 
-            const duplicateName = `${image.name.split('.')[0]}_duplicate.${image.name.split('.').pop()}`;
-            const duplicateFile = new Image({
-                ...image.toObject(),
+            const duplicateName = `${pdf.name.split('.')[0]}_duplicate.${pdf.name.split('.').pop()}`;
+            const duplicateFile = new Pdf({
+                ...pdf.toObject(),
                 name: duplicateName,
                 _id: undefined,
             });
@@ -129,13 +129,13 @@ export default class ImageController {
     static async deleteFile(req: Request, res: Response): Promise<any> {
         try {
             const { id } = req.params;
-            const image = await Image.findById(id);
+            const pdf = await Pdf.findById(id);
 
-            if (!image) {
+            if (!pdf) {
                 return res.status(404).json({ error: 'File not found.' });
             }
 
-            await image.deleteOne();
+            await pdf.deleteOne();
 
             return res.status(200).json({
                 message: 'File deleted successfully from the database.',
@@ -152,17 +152,17 @@ export default class ImageController {
             const { id } = req.params;
             const { folder } = req.body;
 
-            const image = await Image.findById(id);
-            if (!image) {
+            const pdf = await Pdf.findById(id);
+            if (!pdf) {
                 return res.status(404).json({ error: 'File not found.' });
             }
 
-            image.folder = folder;
-            await image.save();
+            pdf.folder = folder;
+            await pdf.save();
 
             return res
                 .status(200)
-                .json({ message: 'File moved successfully.', data: image });
+                .json({ message: 'File moved successfully.', data: pdf });
         } catch (error) {
             return res.status(500).json({ error: 'Failed to move file.' });
         }

@@ -6,6 +6,7 @@ import MailService from './config/mail/mail.config';
 
 import authenticationRoutes from './routes/auth.route';
 import imageRoutes from './routes/image.route';
+import pdfRoutes from './routes/pdf.route';
 
 dotenv.config();
 
@@ -21,6 +22,7 @@ app.get('/', (req: Request, res: Response) => {
 
 app.use('/api/v1/auth', authenticationRoutes);
 app.use('/api/v1/images', imageRoutes);
+app.use('/api/v1/pdfs', pdfRoutes);
 
 app.listen(PORT, async () => {
     await connectDB();

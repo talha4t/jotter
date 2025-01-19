@@ -1,10 +1,12 @@
-import { Request, Response } from 'express';
 import argon from 'argon2';
 
-import User from '../models/user.model';
+import { Request, Response } from 'express';
+
 import { generateToken, verifyToken } from '../utils/token.util';
-import MailService from '../config/mail/mail.config';
 import { isEmailValid } from '../validators/email.validator';
+
+import User from '../models/user.model';
+import MailService from '../config/mail/mail.config';
 
 export default class AuthController {
     static async register(req: Request, res: Response): Promise<any> {
@@ -267,6 +269,44 @@ export default class AuthController {
             console.error('Error during password reset:', error);
 
             res.status(500).json({ message: 'Internal server error' });
+        }
+    }
+
+    static async refreshToken(req: Request, res: Response): Promise<any> {
+        try {
+            const { refreshToken } = req.body;
+
+            if (!refreshToken) {
+                return res
+                    .status(400)
+                    .json({ message: 'Refresh token is required.' });
+            }
+
+            let decoded;
+            try {
+                decoded = verifyToken(refreshToken);
+            } catch (error: any) {
+                return res
+                    .status(401)
+                    .json({ message: 'Invalid or expired refresh token.' });
+            }
+
+            const user = await User.findById(decoded.sub);
+
+            if (!user || user.refreshToken !== refreshToken) {
+                return res
+                    .status(403)
+                    .json({ message: 'Invalid refresh token.' });
+            }
+
+            const newAccessToken = generateToken(
+                { sub: user.id, email: user.email },
+                process.env.ACCESS_TOKEN_EXPIRY!,
+            );
+
+            return res.status(200).json({ accessToken: newAccessToken });
+        } catch (error: any) {
+            res.status(500).json({ message: error.message });
         }
     }
 }

@@ -5,6 +5,7 @@ import FileController from '../controllers/file.controller';
 const fileRouter = Router();
 
 fileRouter.post('/create', FileController.create);
+fileRouter.post('/favourite/:id', FileController.isFavourite);
 
 fileRouter.get('/', FileController.list);
 

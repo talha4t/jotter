@@ -73,6 +73,33 @@ export default class FileController {
         }
     }
 
+    static async isFavourite(req: Request, res: Response): Promise<any> {
+        try {
+            const { id } = req.params;
+
+            const image = await File.findById(id);
+
+            if (!image) {
+                return res.status(404).json({ error: 'File not found.' });
+            }
+
+            image.isFavourite = !image.isFavourite;
+
+            await image.save();
+
+            return res.status(200).json({
+                message: image.isFavourite
+                    ? 'File added to favourites.'
+                    : 'File removed from favourites.',
+                data: image,
+            });
+        } catch (error) {
+            return res
+                .status(500)
+                .json({ error: 'Failed to update favourite status.' });
+        }
+    }
+
     static async delete(req: Request, res: Response): Promise<any> {
         try {
             const { id } = req.params;

@@ -25,7 +25,6 @@ export default class PdfController {
                 data: newPdf,
             });
         } catch (error) {
-            console.log('errrrrr', error);
             return res.status(500).json({ error: 'Failed to upload PDF.' });
         }
     }

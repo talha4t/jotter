@@ -32,7 +32,6 @@ app.use('/api/v1/stats', statsRouter);
 app.listen(PORT, async () => {
     await connectDB();
 
-    // Mail Service Up & Down Function
     try {
         await MailService.verifyConnection();
     } catch (error) {

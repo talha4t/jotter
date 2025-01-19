@@ -3,7 +3,7 @@ import argon from 'argon2';
 import { Request, Response } from 'express';
 
 import { generateToken, verifyToken } from '../utils/token.util';
-import { isEmailValid } from '../validators/email.validator';
+import { isEmailValid } from '../utils/email-validator.util';
 
 import User from '../models/user.model';
 import MailService from '../config/mail/mail.config';
@@ -80,6 +80,70 @@ export default class AuthController {
         }
     }
 
+    static async login(req: Request, res: Response): Promise<any> {
+        try {
+            const { email, password } = req.body;
+            const user = await User.findOne({ email });
+
+            if (!user || !(await argon.verify(user.password, password))) {
+                return res
+                    .status(400)
+                    .json({ message: 'Invalid email or password' });
+            }
+
+            if (!user.isVerified) {
+                return res
+                    .status(403)
+                    .json({ message: 'Verify your email to login' });
+            }
+
+            const accessToken = generateToken(
+                { sub: user.id, email: user.email },
+                process.env.ACCESS_TOKEN_EXPIRY!,
+            );
+
+            const refreshToken = generateToken(
+                { sub: user.id },
+                process.env.REFRESH_TOKEN_EXPIRY!,
+            );
+
+            user.refreshToken = refreshToken;
+            await user.save();
+
+            res.status(200).json({ accessToken, refreshToken });
+        } catch (error) {
+            res.status(500).json({ message: error });
+        }
+    }
+
+    static async logout(req: Request, res: Response): Promise<any> {
+        try {
+            const { refreshToken } = req.body;
+
+            if (!refreshToken) {
+                return res
+                    .status(400)
+                    .json({ message: 'Refresh token is required' });
+            }
+
+            const user = await User.findOne({ refreshToken });
+
+            if (!user) {
+                return res
+                    .status(200)
+                    .json({ message: 'Logged out successfully' });
+            }
+
+            user.refreshToken = '';
+            await user.save();
+
+            return res.status(200).json({ message: 'Logged out successfully' });
+        } catch (error) {
+            console.error('Error during logout:', error);
+            return res.status(500).json({ message: 'Internal server error' });
+        }
+    }
+
     static async verifyEmail(req: Request, res: Response): Promise<any> {
         try {
             const { email, verificationPin } = req.body;
@@ -117,79 +181,32 @@ export default class AuthController {
         }
     }
 
-    static async resendPin(req: Request, res: Response): Promise<any> {
+    static async editUserInfo(req: Request, res: Response): Promise<any> {
         try {
-            const { email } = req.body;
+            const { name } = req.body;
 
-            const user = await User.findOne({ email });
-
-            if (!user) {
-                return res
-                    .status(400)
-                    .json({ message: 'Invalid email address' });
+            if (!name) {
+                return res.status(400).json({ message: 'Name is required' });
             }
 
-            if (user.isVerified) {
-                return res.status(400).json({
-                    message: 'User is already verified. No need for PIN',
-                });
-            }
+            const userId = req.user?.sub;
 
-            const verificationPin = Math.floor(
-                100000 + Math.random() * 900000,
-            ).toString();
-            const hashedPin = await argon.hash(verificationPin);
-
-            user.verificationPin = hashedPin;
-            await user.save();
-
-            await MailService.sendVerificationEmail(
-                user.email,
-                verificationPin,
+            const updatedUser = await User.findByIdAndUpdate(
+                userId,
+                { name },
+                { new: true },
             );
 
-            return res
-                .status(200)
-                .json({ message: 'Verification email resent' });
+            if (!updatedUser) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+
+            return res.status(200).json({
+                message: 'User info updated successfully',
+                user: updatedUser,
+            });
         } catch (error) {
-            console.error('Error during PIN resend:', error);
             return res.status(500).json({ message: 'Internal server error' });
-        }
-    }
-
-    static async login(req: Request, res: Response): Promise<any> {
-        try {
-            const { email, password } = req.body;
-            const user = await User.findOne({ email });
-
-            if (!user || !(await argon.verify(user.password, password))) {
-                return res
-                    .status(400)
-                    .json({ message: 'Invalid email or password' });
-            }
-
-            if (!user.isVerified) {
-                return res
-                    .status(403)
-                    .json({ message: 'Verify your email to login' });
-            }
-
-            const accessToken = generateToken(
-                { sub: user.id, email: user.email },
-                process.env.ACCESS_TOKEN_EXPIRY!,
-            );
-
-            const refreshToken = generateToken(
-                { sub: user.id },
-                process.env.REFRESH_TOKEN_EXPIRY!,
-            );
-
-            user.refreshToken = refreshToken;
-            await user.save();
-
-            res.status(200).json({ accessToken, refreshToken });
-        } catch (error) {
-            res.status(500).json({ message: error });
         }
     }
 
@@ -269,6 +286,46 @@ export default class AuthController {
             console.error('Error during password reset:', error);
 
             res.status(500).json({ message: 'Internal server error' });
+        }
+    }
+
+    static async resendPin(req: Request, res: Response): Promise<any> {
+        try {
+            const { email } = req.body;
+
+            const user = await User.findOne({ email });
+
+            if (!user) {
+                return res
+                    .status(400)
+                    .json({ message: 'Invalid email address' });
+            }
+
+            if (user.isVerified) {
+                return res.status(400).json({
+                    message: 'User is already verified. No need for PIN',
+                });
+            }
+
+            const verificationPin = Math.floor(
+                100000 + Math.random() * 900000,
+            ).toString();
+            const hashedPin = await argon.hash(verificationPin);
+
+            user.verificationPin = hashedPin;
+            await user.save();
+
+            await MailService.sendVerificationEmail(
+                user.email,
+                verificationPin,
+            );
+
+            return res
+                .status(200)
+                .json({ message: 'Verification email resent' });
+        } catch (error) {
+            console.error('Error during PIN resend:', error);
+            return res.status(500).json({ message: 'Internal server error' });
         }
     }
 

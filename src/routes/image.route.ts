@@ -30,6 +30,6 @@ imageRouter.post('/favourite/:id', ImageController.isFavourite);
 imageRouter.patch('/rename/:id', ImageController.renameFile);
 imageRouter.patch('/move/:id', ImageController.moveFile);
 
-imageRouter.delete('/:id', ImageController.deleteFile);
+imageRouter.delete('/delete/:id', ImageController.deleteFile);
 
 export default imageRouter;

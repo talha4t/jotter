@@ -1,10 +1,25 @@
 import { Router } from 'express';
 
-import ImageController from '../controllers/image.controller';
 import { uploadMiddleware } from '../middlewares/multer-image.middleware';
+import { authenticateToken } from '../middlewares/auth.middleware';
+
+import ImageController from '../controllers/image.controller';
 
 const imageRouter = Router();
 
+imageRouter.use(
+    [
+        '/',
+        'upload',
+        '/copy/:id',
+        '/duplicate/:id',
+        '/favourite/:id',
+        '/rename/:id',
+        '/move/:id',
+        '/delete/:id',
+    ],
+    authenticateToken,
+);
 imageRouter.get('/', ImageController.list);
 
 imageRouter.post('/upload', uploadMiddleware, ImageController.upload);

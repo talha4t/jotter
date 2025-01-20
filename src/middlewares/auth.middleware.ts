@@ -11,7 +11,7 @@ export const authenticateToken = (
         const token = authHeader?.split(' ')[1];
 
         if (!token) {
-            res.status(401).json({ message: 'No token provided' });
+            res.status(401).json({ message: 'You are not Authorized' });
             return;
         }
 

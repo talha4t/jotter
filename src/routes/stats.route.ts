@@ -1,7 +1,14 @@
 import { Router } from 'express';
+
 import LogsController from '../controllers/stats.controller';
+import { authenticateToken } from '../middlewares/auth.middleware';
 
 const statsRouter = Router();
+
+statsRouter.use(
+    ['/', '/pdfs', '/images', '/files', 'specific'],
+    authenticateToken,
+);
 
 statsRouter.get('/', LogsController.getOverallStats);
 statsRouter.get('/pdfs', LogsController.getPDFStats);

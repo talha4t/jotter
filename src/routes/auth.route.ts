@@ -1,9 +1,12 @@
 import { Router } from 'express';
 
 import AuthController from '../controllers/auth.controller';
+
 import { authenticateToken } from '../middlewares/auth.middleware';
 
 const authRouter = Router();
+
+authRouter.use(['/change-password', '/delete-account'], authenticateToken);
 
 authRouter.post('/register', AuthController.register);
 authRouter.post('/verify-email', AuthController.verifyEmail);
@@ -20,16 +23,8 @@ authRouter.post(
 
 authRouter.patch('/edit-user', authenticateToken, AuthController.editUserInfo);
 
-authRouter.put(
-    '/change-password',
-    authenticateToken,
-    AuthController.changePassword,
-);
+authRouter.put('/change-password', AuthController.changePassword);
 
-authRouter.delete(
-    '/delete-account',
-    authenticateToken,
-    AuthController.deleteAccount,
-);
+authRouter.delete('/delete-account', AuthController.deleteAccount);
 
 export default authRouter;

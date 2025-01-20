@@ -1,79 +1,20 @@
-import argon from 'argon2';
-
 import { Request, Response } from 'express';
 
-import { generateToken, verifyToken } from '../utils/token.util';
-import { isEmailValid } from '../utils/email-validator.util';
-
-import User from '../models/user.model';
-import MailService from '../config/mail/mail.config';
+import AuthService from '../services/auth.service';
 
 export default class AuthController {
     static async register(req: Request, res: Response): Promise<any> {
         try {
             const { name, email, password, confirmPassword } = req.body;
 
-            if (password !== confirmPassword) {
-                return res
-                    .status(400)
-                    .json({ message: 'Passwords do not match' });
-            }
-
-            const isValidEmail = await isEmailValid(email);
-            if (!isValidEmail) {
-                return res
-                    .status(400)
-                    .json({ message: 'Invalid email address' });
-            }
-
-            const existingUser = await User.findOne({ email });
-
-            if (existingUser) {
-                if (!existingUser.isVerified) {
-                    const verificationPin = Math.floor(
-                        100000 + Math.random() * 900000,
-                    ).toString();
-                    existingUser.verificationPin =
-                        await argon.hash(verificationPin);
-                    await existingUser.save();
-
-                    await MailService.sendVerificationEmail(
-                        existingUser.email,
-                        verificationPin,
-                    );
-                    return res
-                        .status(200)
-                        .json({ message: 'Verification email resent' });
-                }
-                return res
-                    .status(400)
-                    .json({ message: 'Email already in use' });
-            }
-
-            const hashedPassword = await argon.hash(password);
-
-            const verificationPin = Math.floor(
-                100000 + Math.random() * 900000,
-            ).toString();
-            const hashedPin = await argon.hash(verificationPin);
-
-            const user = await User.create({
+            const result = await AuthService.register({
                 name,
                 email,
-                password: hashedPassword,
-                verificationPin: hashedPin,
-                isVerified: false,
+                password,
+                confirmPassword,
             });
 
-            await MailService.sendVerificationEmail(
-                user.email,
-                verificationPin,
-            );
-
-            return res.status(201).json({
-                message:
-                    'User registered. Verify your email to activate your account.',
-            });
+            return res.status(result.status).json(result.data);
         } catch (error) {
             return res.status(500).json({ message: 'Internal server error' });
         }
@@ -82,69 +23,23 @@ export default class AuthController {
     static async login(req: Request, res: Response): Promise<any> {
         try {
             const { email, password } = req.body;
-            const user = await User.findOne({ email });
 
-            if (!user || !(await argon.verify(user.password, password))) {
-                return res
-                    .status(400)
-                    .json({ message: 'Invalid email or password' });
-            }
+            const result = await AuthService.login(email, password);
 
-            if (!user.isVerified) {
-                return res
-                    .status(403)
-                    .json({ message: 'Verify your email to login' });
-            }
-
-            const accessToken = generateToken(
-                { sub: user.id, email: user.email },
-                process.env.ACCESS_TOKEN_EXPIRY!,
-            );
-
-            const refreshToken = generateToken(
-                { sub: user.id },
-                process.env.REFRESH_TOKEN_EXPIRY!,
-            );
-
-            user.refreshToken = refreshToken;
-            await user.save();
-
-            res.status(200).json({ accessToken, refreshToken });
+            return res.status(result.status).json(result.data);
         } catch (error) {
-            res.status(500).json({ message: error });
+            return res.status(500).json({ message: 'Internal server error' });
         }
     }
 
     static async verifyEmail(req: Request, res: Response): Promise<any> {
         try {
             const { email, verificationPin } = req.body;
-
-            const user = await User.findOne({ email });
-
-            if (!user) {
-                return res
-                    .status(400)
-                    .json({ message: 'Invalid email or PIN' });
-            }
-
-            const isPinValid = await argon.verify(
-                user.verificationPin,
+            const result = await AuthService.verifyEmail(
+                email,
                 verificationPin,
             );
-            if (!isPinValid) {
-                return res
-                    .status(400)
-                    .json({ message: 'Invalid verification PIN' });
-            }
-
-            user.isVerified = true;
-            user.verificationPin = '';
-
-            await user.save();
-
-            return res
-                .status(200)
-                .json({ message: 'Email verified successfully' });
+            return res.status(result.status).json(result.data);
         } catch (error) {
             return res.status(500).json({ message: 'Internal server error' });
         }
@@ -153,27 +48,15 @@ export default class AuthController {
     static async editUserInfo(req: Request, res: Response): Promise<any> {
         try {
             const { name } = req.body;
-
-            if (!name) {
-                return res.status(400).json({ message: 'Name is required' });
-            }
-
             const userId = req.user?.sub;
 
-            const updatedUser = await User.findByIdAndUpdate(
-                userId,
-                { name },
-                { new: true },
-            );
-
-            if (!updatedUser) {
-                return res.status(404).json({ message: 'User not found' });
+            if (!userId) {
+                return res.status(400).json({ message: 'User ID is required' });
             }
 
-            return res.status(200).json({
-                message: 'User info updated successfully',
-                user: updatedUser,
-            });
+            const result = await AuthService.editUserInfo(userId, name);
+
+            return res.status(result.status).json(result.data);
         } catch (error) {
             return res.status(500).json({ message: 'Internal server error' });
         }
@@ -182,32 +65,12 @@ export default class AuthController {
     static async forgotPassword(req: Request, res: Response): Promise<any> {
         try {
             const { email } = req.body;
-            const user = await User.findOne({ email });
 
-            if (!user) {
-                return res
-                    .status(200)
-                    .json({ message: 'If email exists, reset PIN sent' });
-            }
+            const result = await AuthService.forgotPassword(email);
 
-            const resetPin = Math.floor(
-                100000 + Math.random() * 900000,
-            ).toString();
-
-            const hashedResetPin = await argon.hash(resetPin);
-
-            user.resetPasswordPin = hashedResetPin;
-            user.resetPasswordExpires = new Date(Date.now() + 3600000);
-
-            await user.save();
-
-            await MailService.sendResetPasswordEmail(email, resetPin);
-
-            res.status(200).json({
-                message: 'If email exists, reset PIN sent',
-            });
+            return res.status(result.status).json(result.data);
         } catch (error) {
-            res.status(500).json({ message: 'Internal server error' });
+            return res.status(500).json({ message: 'Internal server error' });
         }
     }
 
@@ -215,42 +78,17 @@ export default class AuthController {
         try {
             const { email, resetPin, newPassword, confirmNewPassword } =
                 req.body;
-            const user = await User.findOne({ email });
 
-            if (newPassword !== confirmNewPassword) {
-                return res
-                    .status(400)
-                    .json({ message: 'Passwords do not match' });
-            }
-
-            if (
-                !user ||
-                !user.resetPasswordPin ||
-                !user.resetPasswordExpires ||
-                user.resetPasswordExpires < new Date()
-            ) {
-                return res
-                    .status(403)
-                    .json({ message: 'Invalid or expired reset PIN' });
-            }
-
-            const isPinValid = await argon.verify(
-                user.resetPasswordPin,
+            const result = await AuthService.resetPassword(
+                email,
                 resetPin,
+                newPassword,
+                confirmNewPassword,
             );
-            if (!isPinValid) {
-                return res.status(403).json({ message: 'Invalid reset PIN' });
-            }
 
-            user.password = await argon.hash(newPassword);
-            user.resetPasswordPin = '';
-            user.resetPasswordExpires = undefined;
-
-            await user.save();
-
-            res.status(200).json({ message: 'Password reset successful' });
+            return res.status(result.status).json(result.data);
         } catch (error) {
-            res.status(500).json({ message: 'Internal server error' });
+            return res.status(500).json({ message: 'Internal server error' });
         }
     }
 
@@ -258,87 +96,28 @@ export default class AuthController {
         try {
             const { email } = req.body;
 
-            const user = await User.findOne({ email });
+            const result = await AuthService.resendPin(email);
 
-            if (!user) {
-                return res
-                    .status(400)
-                    .json({ message: 'Invalid email address' });
-            }
-
-            if (user.isVerified) {
-                return res.status(400).json({
-                    message: 'User is already verified. No need for PIN',
-                });
-            }
-
-            const verificationPin = Math.floor(
-                100000 + Math.random() * 900000,
-            ).toString();
-            const hashedPin = await argon.hash(verificationPin);
-
-            user.verificationPin = hashedPin;
-            await user.save();
-
-            await MailService.sendVerificationEmail(
-                user.email,
-                verificationPin,
-            );
-
-            return res
-                .status(200)
-                .json({ message: 'Verification email resent' });
+            return res.status(result.status).json(result.data);
         } catch (error) {
             return res.status(500).json({ message: 'Internal server error' });
         }
     }
+
     static async changePassword(req: Request, res: Response): Promise<any> {
         try {
             const { currentPassword, newPassword, confirmNewPassword } =
                 req.body;
 
-            if (!currentPassword || !newPassword || !confirmNewPassword) {
-                return res
-                    .status(400)
-                    .json({ message: 'All fields are required' });
-            }
-
-            if (newPassword !== confirmNewPassword) {
-                return res
-                    .status(400)
-                    .json({ message: 'Passwords do not match' });
-            }
-
-            const userId = req.user?.sub;
-            if (!userId) {
-                return res.status(401).json({ message: 'Unauthorized' });
-            }
-
-            const user = await User.findById(userId);
-            if (!user) {
-                return res.status(404).json({ message: 'User not found' });
-            }
-
-            const isPasswordValid = await argon.verify(
-                user.password,
+            const result = await AuthService.changePassword(
+                req.user?.sub,
                 currentPassword,
+                newPassword,
+                confirmNewPassword,
             );
-            if (!isPasswordValid) {
-                return res
-                    .status(400)
-                    .json({ message: 'Current password is incorrect' });
-            }
 
-            const hashedNewPassword = await argon.hash(newPassword);
-
-            user.password = hashedNewPassword;
-            await user.save();
-
-            return res
-                .status(200)
-                .json({ message: 'Password changed successfully' });
+            return res.status(result.status).json(result.data);
         } catch (error) {
-            console.error('Error during password change:', error);
             return res.status(500).json({ message: 'Internal server error' });
         }
     }
@@ -347,24 +126,9 @@ export default class AuthController {
         try {
             const { refreshToken } = req.body;
 
-            if (!refreshToken) {
-                return res
-                    .status(400)
-                    .json({ message: 'Refresh token is required' });
-            }
+            const result = await AuthService.logout(refreshToken);
 
-            const user = await User.findOne({ refreshToken });
-
-            if (!user) {
-                return res
-                    .status(200)
-                    .json({ message: 'Logged out successfully' });
-            }
-
-            user.refreshToken = '';
-            await user.save();
-
-            return res.status(200).json({ message: 'Logged out successfully' });
+            return res.status(result.status).json(result.data);
         } catch (error) {
             return res.status(500).json({ message: 'Internal server error' });
         }
@@ -372,61 +136,23 @@ export default class AuthController {
 
     static async deleteAccount(req: Request, res: Response): Promise<any> {
         try {
-            const userId = req.user?.sub;
-            if (!userId) {
-                return res
-                    .status(400)
-                    .json({ message: 'User not authenticated' });
-            }
+            const result = await AuthService.deleteAccount(req.user?.sub);
 
-            const user = await User.findByIdAndDelete(userId);
-
-            if (!user) {
-                return res.status(404).json({ message: 'User not found' });
-            }
-
-            return res
-                .status(200)
-                .json({ message: 'Account deleted successfully' });
+            return res.status(result.status).json(result.data);
         } catch (error) {
             return res.status(500).json({ message: 'Internal server error' });
         }
     }
+
     static async refreshToken(req: Request, res: Response): Promise<any> {
         try {
             const { refreshToken } = req.body;
 
-            if (!refreshToken) {
-                return res
-                    .status(400)
-                    .json({ message: 'Refresh token is required.' });
-            }
+            const result = await AuthService.refreshToken(refreshToken);
 
-            let decoded;
-            try {
-                decoded = verifyToken(refreshToken);
-            } catch (error: any) {
-                return res
-                    .status(401)
-                    .json({ message: 'Invalid or expired refresh token.' });
-            }
-
-            const user = await User.findById(decoded.sub);
-
-            if (!user || user.refreshToken !== refreshToken) {
-                return res
-                    .status(403)
-                    .json({ message: 'Invalid refresh token.' });
-            }
-
-            const newAccessToken = generateToken(
-                { sub: user.id, email: user.email },
-                process.env.ACCESS_TOKEN_EXPIRY!,
-            );
-
-            return res.status(200).json({ accessToken: newAccessToken });
-        } catch (error: any) {
-            res.status(500).json({ message: error.message });
+            return res.status(result.status).json(result.data);
+        } catch (error) {
+            res.status(500).json({ message: 'Internal server error' });
         }
     }
 }

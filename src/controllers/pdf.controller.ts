@@ -1,68 +1,38 @@
 import { Request, Response } from 'express';
-
-import { verifyToken } from '../utils/token.util';
-
-import Pdf from '../models/pdf.model';
+import PdfService from '../services/pdf.service';
 
 export default class PdfController {
     static async upload(req: Request, res: Response): Promise<any> {
         try {
-            const { originalname, path: filePath, size } = req.file!;
-            const name = originalname;
+            const { file } = req;
 
-            const existingPdf = await Pdf.findOne({ name });
-            if (existingPdf) {
-                return res.status(400).json({
-                    error: 'A file with the same name already exists.',
-                });
-            }
+            const result = await PdfService.uploadPdf(file!);
 
-            const newPdf = new Pdf({ name, path: filePath, size });
-            await newPdf.save();
-
-            return res.status(201).json({
-                message: 'PDF uploaded successfully.',
-                data: newPdf,
-            });
+            return res.status(201).json(result);
         } catch (error) {
-            return res.status(500).json({ error: 'Failed to upload PDF.' });
+            return res.status(500).json({ message: 'Internal server error' });
         }
     }
 
     static async list(req: Request, res: Response): Promise<any> {
         try {
-            const pdfs = await Pdf.find();
+            const pdfs = await PdfService.listPdfs();
 
             return res.status(200).json(pdfs);
         } catch (error) {
-            return res.status(500).json({ error: 'Failed to fetch PDFs.' });
+            return res.status(500).json({ message: 'Internal server error' });
         }
     }
 
     static async copyFile(req: Request, res: Response): Promise<any> {
         try {
             const { id } = req.params;
-            const pdf = await Pdf.findById(id);
 
-            if (!pdf) {
-                return res.status(404).json({ error: 'File not found.' });
-            }
+            const result = await PdfService.copyPdf(id);
 
-            const newName = `${pdf.name.split('.')[0]}_copy.${pdf.name.split('.').pop()}`;
-            const copiedFile = new Pdf({
-                ...pdf.toObject(),
-                name: newName,
-                _id: undefined,
-            });
-
-            await copiedFile.save();
-
-            return res.status(201).json({
-                message: 'File copied successfully.',
-                data: copiedFile,
-            });
+            return res.status(201).json(result);
         } catch (error) {
-            return res.status(500).json({ error: 'Failed to copy file.' });
+            return res.status(500).json({ message: 'Internal server error' });
         }
     }
 
@@ -71,53 +41,23 @@ export default class PdfController {
             const { id } = req.params;
             const { newName } = req.body;
 
-            const existingPdf = await Pdf.findOne({ name: newName });
-            if (existingPdf) {
-                return res
-                    .status(400)
-                    .json({ error: 'A file with this name already exists.' });
-            }
+            const result = await PdfService.renamePdf(id, newName);
 
-            const pdf = await Pdf.findById(id);
-            if (!pdf) {
-                return res.status(404).json({ error: 'File not found.' });
-            }
-
-            pdf.name = newName;
-            await pdf.save();
-
-            return res
-                .status(200)
-                .json({ message: 'File renamed successfully.', data: pdf });
+            return res.status(200).json(result);
         } catch (error) {
-            return res.status(500).json({ error: 'Failed to rename file.' });
+            return res.status(500).json({ message: 'Internal server error' });
         }
     }
 
     static async duplicateFile(req: Request, res: Response): Promise<any> {
         try {
             const { id } = req.params;
-            const pdf = await Pdf.findById(id);
 
-            if (!pdf) {
-                return res.status(404).json({ error: 'File not found.' });
-            }
+            const result = await PdfService.duplicatePdf(id);
 
-            const duplicateName = `${pdf.name.split('.')[0]}_duplicate.${pdf.name.split('.').pop()}`;
-            const duplicateFile = new Pdf({
-                ...pdf.toObject(),
-                name: duplicateName,
-                _id: undefined,
-            });
-
-            await duplicateFile.save();
-
-            return res.status(201).json({
-                message: 'File duplicated successfully.',
-                data: duplicateFile,
-            });
+            return res.status(201).json(result);
         } catch (error) {
-            return res.status(500).json({ error: 'Failed to duplicate file.' });
+            return res.status(500).json({ message: 'Internal server error' });
         }
     }
 
@@ -125,47 +65,23 @@ export default class PdfController {
         try {
             const { id } = req.params;
 
-            const image = await Pdf.findById(id);
+            const result = await PdfService.toggleFavourite(id);
 
-            if (!image) {
-                return res.status(404).json({ error: 'File not found.' });
-            }
-
-            image.isFavourite = !image.isFavourite;
-
-            await image.save();
-
-            return res.status(200).json({
-                message: image.isFavourite
-                    ? 'Pdf added to favourites.'
-                    : 'Pdf removed from favourites.',
-                data: image,
-            });
+            return res.status(200).json(result);
         } catch (error) {
-            return res
-                .status(500)
-                .json({ error: 'Failed to update favourite status.' });
+            return res.status(500).json({ message: 'Internal server error' });
         }
     }
 
     static async deleteFile(req: Request, res: Response): Promise<any> {
         try {
             const { id } = req.params;
-            const pdf = await Pdf.findById(id);
 
-            if (!pdf) {
-                return res.status(404).json({ error: 'File not found.' });
-            }
+            const result = await PdfService.deletePdf(id);
 
-            await pdf.deleteOne();
-
-            return res.status(200).json({
-                message: 'File deleted successfully from the database.',
-            });
+            return res.status(200).json(result);
         } catch (error) {
-            return res
-                .status(500)
-                .json({ error: 'Failed to delete file from the database.' });
+            return res.status(500).json({ message: 'Internal server error' });
         }
     }
 
@@ -174,19 +90,11 @@ export default class PdfController {
             const { id } = req.params;
             const { folder } = req.body;
 
-            const pdf = await Pdf.findById(id);
-            if (!pdf) {
-                return res.status(404).json({ error: 'File not found.' });
-            }
+            const result = await PdfService.movePdf(id, folder);
 
-            pdf.folder = folder;
-            await pdf.save();
-
-            return res
-                .status(200)
-                .json({ message: 'File moved successfully.', data: pdf });
+            return res.status(200).json(result);
         } catch (error) {
-            return res.status(500).json({ error: 'Failed to move file.' });
+            return res.status(500).json({ message: 'Internal server error' });
         }
     }
 }

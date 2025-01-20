@@ -1,37 +1,30 @@
 import { Request, Response } from 'express';
-
-import File from '../models/file.model';
+import FileService from '../services/file.service';
 
 export default class FileController {
     static async create(req: Request, res: Response): Promise<any> {
         try {
             const { name, content, folder } = req.body;
 
-            const existingFile = await File.findOne({ name });
-            if (existingFile) {
-                return res
-                    .status(400)
-                    .json({ error: 'A file with this name already exists.' });
-            }
+            const result = await FileService.createFile({
+                name,
+                content,
+                folder,
+            });
 
-            const newFile = new File({ name, content, folder });
-            await newFile.save();
-
-            return res
-                .status(201)
-                .json({ message: 'File created successfully.', data: newFile });
-        } catch (error) {
-            return res.status(500).json({ error: 'Failed to create file.' });
+            return res.status(201).json(result);
+        } catch (error: any) {
+            return res.status(500).json({ message: 'Internal server error' });
         }
     }
 
     static async list(req: Request, res: Response): Promise<any> {
         try {
-            const files = await File.find();
+            const result = await FileService.listFiles();
 
-            return res.status(200).json(files);
-        } catch (error) {
-            return res.status(500).json({ error: 'Failed to fetch files.' });
+            return res.status(200).json(result);
+        } catch (error: any) {
+            return res.status(500).json({ message: 'Internal server error' });
         }
     }
 
@@ -40,36 +33,15 @@ export default class FileController {
             const { id } = req.params;
             const { name, content, folder } = req.body;
 
-            const file = await File.findById(id);
-            if (!file) {
-                return res.status(404).json({ error: 'File not found.' });
-            }
+            const result = await FileService.updateFile(id, {
+                name,
+                content,
+                folder,
+            });
 
-            if (name) {
-                const existingFile = await File.findOne({ name });
-                if (existingFile && existingFile.id !== id) {
-                    return res.status(400).json({
-                        error: 'A file with this name already exists.',
-                    });
-                }
-                file.name = name;
-            }
-
-            if (content !== undefined) {
-                file.content = content;
-            }
-
-            if (folder !== undefined) {
-                file.folder = folder;
-            }
-
-            await file.save();
-
-            return res
-                .status(200)
-                .json({ message: 'File updated successfully.', data: file });
-        } catch (error) {
-            return res.status(500).json({ error: 'Failed to update file.' });
+            return res.status(200).json(result);
+        } catch (error: any) {
+            return res.status(500).json({ message: 'Internal server error' });
         }
     }
 
@@ -77,26 +49,11 @@ export default class FileController {
         try {
             const { id } = req.params;
 
-            const image = await File.findById(id);
+            const result = await FileService.toggleFavourite(id);
 
-            if (!image) {
-                return res.status(404).json({ error: 'File not found.' });
-            }
-
-            image.isFavourite = !image.isFavourite;
-
-            await image.save();
-
-            return res.status(200).json({
-                message: image.isFavourite
-                    ? 'File added to favourites.'
-                    : 'File removed from favourites.',
-                data: image,
-            });
-        } catch (error) {
-            return res
-                .status(500)
-                .json({ error: 'Failed to update favourite status.' });
+            return res.status(200).json(result);
+        } catch (error: any) {
+            return res.status(500).json({ message: 'Internal server error' });
         }
     }
 
@@ -104,18 +61,11 @@ export default class FileController {
         try {
             const { id } = req.params;
 
-            const file = await File.findById(id);
-            if (!file) {
-                return res.status(404).json({ error: 'File not found.' });
-            }
+            const result = await FileService.deleteFile(id);
 
-            await file.deleteOne();
-
-            return res
-                .status(200)
-                .json({ message: 'File deleted successfully.' });
-        } catch (error) {
-            return res.status(500).json({ error: 'Failed to delete file.' });
+            return res.status(200).json(result);
+        } catch (error: any) {
+            return res.status(500).json({ message: 'Internal server error' });
         }
     }
 }

@@ -4,7 +4,7 @@ Jotter. It's a Storage Management Backend Application
 
 ## Notes
 
-- This application will have three environments
+- This application currently has only one environment
     - local
 
 ## External Services

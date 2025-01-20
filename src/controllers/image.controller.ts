@@ -1,27 +1,17 @@
 import { Request, Response } from 'express';
 
-import Image from '../models/Image.model';
+import ImageService from '../services/image.service';
 
 export default class ImageController {
     static async upload(req: Request, res: Response): Promise<any> {
         try {
             const { originalname, path: filePath, size } = req.file!;
-            const name = originalname;
-
-            const existingImage = await Image.findOne({ name });
-            if (existingImage) {
-                return res.status(400).json({
-                    error: 'A file with the same name already exists.',
-                });
-            }
-
-            const newImage = new Image({ name, path: filePath, size });
-            await newImage.save();
-
-            return res.status(201).json({
-                message: 'Image uploaded successfully.',
-                data: newImage,
-            });
+            const result = await ImageService.uploadImage(
+                originalname,
+                filePath,
+                size,
+            );
+            return res.status(result.status).json(result.data);
         } catch (error) {
             return res.status(500).json({ error: 'Failed to upload image.' });
         }
@@ -29,38 +19,20 @@ export default class ImageController {
 
     static async list(req: Request, res: Response): Promise<any> {
         try {
-            const images = await Image.find();
-
-            return res.status(200).json(images);
+            const result = await ImageService.listImages();
+            return res.status(result.status).json(result.data);
         } catch (error) {
-            return res.status(500).json({ error: 'Failed to fetch images.' });
+            return res.status(500).json({ message: 'Internal server error' });
         }
     }
 
     static async copyFile(req: Request, res: Response): Promise<any> {
         try {
             const { id } = req.params;
-            const image = await Image.findById(id);
-
-            if (!image) {
-                return res.status(404).json({ error: 'File not found.' });
-            }
-
-            const newName = `${image.name.split('.')[0]}_copy.${image.name.split('.').pop()}`;
-            const copiedFile = new Image({
-                ...image.toObject(),
-                name: newName,
-                _id: undefined,
-            });
-
-            await copiedFile.save();
-
-            return res.status(201).json({
-                message: 'File copied successfully.',
-                data: copiedFile,
-            });
+            const result = await ImageService.copyImageFile(id);
+            return res.status(result.status).json(result.data);
         } catch (error) {
-            return res.status(500).json({ error: 'Failed to copy file.' });
+            return res.status(500).json({ message: 'Internal server error' });
         }
     }
 
@@ -68,102 +40,40 @@ export default class ImageController {
         try {
             const { id } = req.params;
             const { newName } = req.body;
-
-            const existingImage = await Image.findOne({ name: newName });
-            if (existingImage) {
-                return res
-                    .status(400)
-                    .json({ error: 'A file with this name already exists.' });
-            }
-
-            const image = await Image.findById(id);
-            if (!image) {
-                return res.status(404).json({ error: 'File not found.' });
-            }
-
-            image.name = newName;
-            await image.save();
-
-            return res
-                .status(200)
-                .json({ message: 'File renamed successfully.', data: image });
+            const result = await ImageService.renameImageFile(id, newName);
+            return res.status(result.status).json(result.data);
         } catch (error) {
-            return res.status(500).json({ error: 'Failed to rename file.' });
+            return res.status(500).json({ message: 'Internal server error' });
         }
     }
 
     static async duplicateFile(req: Request, res: Response): Promise<any> {
         try {
             const { id } = req.params;
-            const image = await Image.findById(id);
-
-            if (!image) {
-                return res.status(404).json({ error: 'File not found.' });
-            }
-
-            const duplicateName = `${image.name.split('.')[0]}_duplicate.${image.name.split('.').pop()}`;
-            const duplicateFile = new Image({
-                ...image.toObject(),
-                name: duplicateName,
-                _id: undefined,
-            });
-
-            await duplicateFile.save();
-
-            return res.status(201).json({
-                message: 'File duplicated successfully.',
-                data: duplicateFile,
-            });
+            const result = await ImageService.duplicateImageFile(id);
+            return res.status(result.status).json(result.data);
         } catch (error) {
-            return res.status(500).json({ error: 'Failed to duplicate file.' });
+            return res.status(500).json({ message: 'Internal server error' });
         }
     }
 
     static async isFavourite(req: Request, res: Response): Promise<any> {
         try {
             const { id } = req.params;
-
-            const image = await Image.findById(id);
-
-            if (!image) {
-                return res.status(404).json({ error: 'File not found.' });
-            }
-
-            image.isFavourite = !image.isFavourite;
-
-            await image.save();
-
-            return res.status(200).json({
-                message: image.isFavourite
-                    ? 'Image added to favourites.'
-                    : 'Image removed from favourites.',
-                data: image,
-            });
+            const result = await ImageService.toggleFavourite(id);
+            return res.status(result.status).json(result.data);
         } catch (error) {
-            return res
-                .status(500)
-                .json({ error: 'Failed to update favourite status.' });
+            return res.status(500).json({ message: 'Internal server error' });
         }
     }
 
     static async deleteFile(req: Request, res: Response): Promise<any> {
         try {
             const { id } = req.params;
-            const image = await Image.findById(id);
-
-            if (!image) {
-                return res.status(404).json({ error: 'File not found.' });
-            }
-
-            await image.deleteOne();
-
-            return res.status(200).json({
-                message: 'File deleted successfully from the database.',
-            });
+            const result = await ImageService.deleteImageFile(id);
+            return res.status(result.status).json(result.data);
         } catch (error) {
-            return res
-                .status(500)
-                .json({ error: 'Failed to delete file from the database.' });
+            return res.status(500).json({ message: 'Internal server error' });
         }
     }
 
@@ -171,20 +81,10 @@ export default class ImageController {
         try {
             const { id } = req.params;
             const { folder } = req.body;
-
-            const image = await Image.findById(id);
-            if (!image) {
-                return res.status(404).json({ error: 'File not found.' });
-            }
-
-            image.folder = folder;
-            await image.save();
-
-            return res
-                .status(200)
-                .json({ message: 'File moved successfully.', data: image });
+            const result = await ImageService.moveImageFile(id, folder);
+            return res.status(result.status).json(result.data);
         } catch (error) {
-            return res.status(500).json({ error: 'Failed to move file.' });
+            return res.status(500).json({ message: 'Internal server error' });
         }
     }
 }

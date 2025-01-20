@@ -1,45 +1,45 @@
 {
-  "name": "jotter",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only src/app.ts",
-    "build": "tsc",
-    "start": "node dist/app.js"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "argon2": "^0.41.1",
-    "axios": "^1.7.9",
-    "class-transformer": "^0.5.1",
-    "class-validator": "^0.14.1",
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.7",
-    "express": "^4.21.2",
-    "express-validator": "^7.2.1",
-    "helmet": "^8.0.0",
-    "joi": "^17.13.3",
-    "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.9.5",
-    "multer": "1.4.5-lts.1",
-    "nodemailer": "^6.9.16"
-  },
-  "devDependencies": {
-    "@types/cors": "^2.8.17",
-    "@types/express": "^5.0.0",
-    "@types/joi": "^17.2.3",
-    "@types/jsonwebtoken": "^9.0.7",
-    "@types/multer": "^1.4.12",
-    "@types/node": "^22.10.7",
-    "@types/nodemailer": "^6.4.17",
-    "eslint-config-prettier": "^10.0.1",
-    "eslint-plugin-prettier": "^5.2.2",
-    "nodemon": "^3.1.9",
-    "prettier": "^3.4.2",
-    "ts-node-dev": "^2.0.0",
-    "typescript": "^5.7.3"
-  }
+    "name": "jotter",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+        "build": "tsc",
+        "start": "node dist/app.js"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "argon2": "^0.41.1",
+        "axios": "^1.7.9",
+        "class-transformer": "^0.5.1",
+        "class-validator": "^0.14.1",
+        "cors": "^2.8.5",
+        "dotenv": "^16.4.7",
+        "express": "^4.21.2",
+        "express-validator": "^7.2.1",
+        "helmet": "^8.0.0",
+        "joi": "^17.13.3",
+        "jsonwebtoken": "^9.0.2",
+        "mongoose": "^8.9.5",
+        "multer": "1.4.5-lts.1",
+        "nodemailer": "^6.9.16"
+    },
+    "devDependencies": {
+        "@types/cors": "^2.8.17",
+        "@types/express": "^5.0.0",
+        "@types/joi": "^17.2.3",
+        "@types/jsonwebtoken": "^9.0.7",
+        "@types/multer": "^1.4.12",
+        "@types/node": "^22.10.7",
+        "@types/nodemailer": "^6.4.17",
+        "eslint-config-prettier": "^10.0.1",
+        "eslint-plugin-prettier": "^5.2.2",
+        "nodemon": "^3.1.9",
+        "prettier": "^3.4.2",
+        "ts-node-dev": "^2.0.0",
+        "typescript": "^5.7.3"
+    }
 }

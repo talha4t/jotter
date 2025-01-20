@@ -40,7 +40,9 @@ export default class ImageController {
         try {
             const { id } = req.params;
             const { newName } = req.body;
+
             const result = await ImageService.renameImageFile(id, newName);
+
             return res.status(result.status).json(result.data);
         } catch (error) {
             return res.status(500).json({ message: 'Internal server error' });
@@ -50,7 +52,9 @@ export default class ImageController {
     static async duplicateFile(req: Request, res: Response): Promise<any> {
         try {
             const { id } = req.params;
+
             const result = await ImageService.duplicateImageFile(id);
+
             return res.status(result.status).json(result.data);
         } catch (error) {
             return res.status(500).json({ message: 'Internal server error' });
@@ -60,7 +64,9 @@ export default class ImageController {
     static async isFavourite(req: Request, res: Response): Promise<any> {
         try {
             const { id } = req.params;
+
             const result = await ImageService.toggleFavourite(id);
+
             return res.status(result.status).json(result.data);
         } catch (error) {
             return res.status(500).json({ message: 'Internal server error' });
@@ -70,7 +76,9 @@ export default class ImageController {
     static async deleteFile(req: Request, res: Response): Promise<any> {
         try {
             const { id } = req.params;
+
             const result = await ImageService.deleteImageFile(id);
+
             return res.status(result.status).json(result.data);
         } catch (error) {
             return res.status(500).json({ message: 'Internal server error' });

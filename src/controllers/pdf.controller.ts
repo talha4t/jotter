@@ -49,18 +49,6 @@ export default class PdfController {
         }
     }
 
-    static async duplicateFile(req: Request, res: Response): Promise<any> {
-        try {
-            const { id } = req.params;
-
-            const result = await PdfService.duplicatePdf(id);
-
-            return res.status(201).json(result);
-        } catch (error) {
-            return res.status(500).json({ message: 'Internal server error' });
-        }
-    }
-
     static async isFavourite(req: Request, res: Response): Promise<any> {
         try {
             const { id } = req.params;

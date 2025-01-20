@@ -15,7 +15,10 @@ export default class FavouriteService {
                 files: favouriteFiles,
             };
         } catch (error) {
-            console.log(error, 'Failed to fetch all info');
+            return {
+                status: 500,
+                data: { message: 'Failed To Fetch All Info' },
+            };
         }
     }
 }

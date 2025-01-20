@@ -1,12 +1,14 @@
-import multer, { diskStorage } from 'multer';
 import * as path from 'path';
 import * as fs from 'fs';
+
 import { Request } from 'express';
+
+import multer, { diskStorage } from 'multer';
 
 export const multerOptions = {
     storage: diskStorage({
         destination: (req, file, cb) => {
-            const uploadPath = path.join(__dirname, '../../public/temp');
+            const uploadPath = path.join(__dirname, '../../public/temp/images');
 
             if (!fs.existsSync(uploadPath)) {
                 fs.mkdirSync(uploadPath, { recursive: true });

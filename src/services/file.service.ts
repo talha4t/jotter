@@ -21,7 +21,10 @@ export default class FileService {
 
             return { message: 'File created successfully.', data: newFile };
         } catch (error) {
-            console.log(error);
+            return {
+                status: 500,
+                data: { message: 'File Created Error' },
+            };
         }
     }
 
@@ -30,7 +33,10 @@ export default class FileService {
             const files = await File.find();
             return files;
         } catch (error) {
-            throw new Error('Failed to fetch files.');
+            return {
+                status: 500,
+                data: { message: 'Get File List Error' },
+            };
         }
     }
 
@@ -63,7 +69,10 @@ export default class FileService {
 
             return { message: 'File updated successfully.', data: file };
         } catch (error) {
-            console.log('error');
+            return {
+                status: 500,
+                data: { message: 'File Update Error' },
+            };
         }
     }
 
@@ -84,7 +93,10 @@ export default class FileService {
                 data: file,
             };
         } catch (error) {
-            console.log(error);
+            return {
+                status: 500,
+                data: { message: 'File Favourite Error' },
+            };
         }
     }
 
@@ -99,7 +111,10 @@ export default class FileService {
 
             return { message: 'File deleted successfully.' };
         } catch (error) {
-            console.log(error);
+            return {
+                status: 500,
+                data: { message: 'File Delete Error' },
+            };
         }
     }
 }

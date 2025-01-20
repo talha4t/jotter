@@ -11,15 +11,18 @@ export const authenticateToken = (
         const token = authHeader?.split(' ')[1];
 
         if (!token) {
-            res.status(401).json({ message: 'You are not Authorized' });
+            res.status(401).json({ message: 'You are' });
+
             return;
         }
 
         const decoded = verifyToken(token);
         req.user = decoded;
+
         next();
     } catch (error) {
         res.status(401).json({ message: 'Invalid or expired token' });
+
         return;
     }
 };

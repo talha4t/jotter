@@ -21,6 +21,7 @@ const UserSchema: Schema = new Schema<IUser>(
         email: { type: String, required: true, unique: true, trim: true },
         password: { type: String, required: true },
         isVerified: { type: Boolean, default: false },
+
         verificationPin: { type: String },
         resetPasswordPin: { type: String },
         resetPasswordExpires: { type: Date },

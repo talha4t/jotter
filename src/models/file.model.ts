@@ -5,6 +5,7 @@ interface IFile extends Document {
     content: string;
     folder: string | null;
     isFavourite: boolean;
+
     createdAt: Date;
     updatedAt: Date;
 }

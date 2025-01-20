@@ -6,6 +6,7 @@ interface IImage extends Document {
     size: number;
     folder: string | null;
     isFavourite: boolean;
+
     createdAt: Date;
     updatedAt: Date;
 }

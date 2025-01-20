@@ -1,8 +1,25 @@
 import { Router } from 'express';
-import PdfController from '../controllers/pdf.controller';
+
 import { uploadMiddleware } from '../middlewares/multer-pdf.middleware';
+import { authenticateToken } from '../middlewares/auth.middleware';
+
+import PdfController from '../controllers/pdf.controller';
 
 const pdfRouter = Router();
+
+pdfRouter.use(
+    [
+        '/',
+        '/upload',
+        '/copy/:id',
+        '/duplicate/:id',
+        '/favourite/:id',
+        '/rename/:id',
+        '/move/:id',
+        '/:id',
+    ],
+    authenticateToken,
+);
 
 pdfRouter.get('/', PdfController.list);
 

@@ -55,7 +55,10 @@ export default class StatsService {
                 },
             };
         } catch (error) {
-            throw new Error('Failed to fetch overall stats.');
+            return {
+                status: 500,
+                data: { message: 'Error Fetch All Stats' },
+            };
         }
     }
 
@@ -76,7 +79,10 @@ export default class StatsService {
                 updatedAt: pdfs.map(pdf => pdf.updatedAt),
             };
         } catch (error) {
-            throw new Error('Failed to fetch PDF stats.');
+            return {
+                status: 500,
+                data: { message: 'Error Fetch PDFs' },
+            };
         }
     }
 
@@ -97,7 +103,10 @@ export default class StatsService {
                 updatedAt: images.map(image => image.updatedAt),
             };
         } catch (error) {
-            throw new Error('Failed to fetch image stats.');
+            return {
+                status: 500,
+                data: { message: 'Error Fetch Images' },
+            };
         }
     }
 
@@ -118,7 +127,10 @@ export default class StatsService {
                 updatedAt: files.map(file => file.updatedAt),
             };
         } catch (error) {
-            throw new Error('Failed to fetch file stats.');
+            return {
+                status: 500,
+                data: { message: 'Error Fetch File' },
+            };
         }
     }
 
@@ -140,7 +152,10 @@ export default class StatsService {
                 files,
             };
         } catch (error) {
-            throw new Error('Failed to fetch specific logs.');
+            return {
+                status: 500,
+                data: { message: 'Error Fetch All Stats' },
+            };
         }
     }
 }

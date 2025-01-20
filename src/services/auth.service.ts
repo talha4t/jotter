@@ -84,8 +84,10 @@ export default class AuthService {
                 },
             };
         } catch (error) {
-            console.error('Error in AuthService register:', error);
-            return { status: 500, data: { message: 'Internal server error' } };
+            return {
+                status: 500,
+                data: { message: 'User Registration Error' },
+            };
         }
     }
 
@@ -125,7 +127,10 @@ export default class AuthService {
                 data: { accessToken, refreshToken },
             };
         } catch (error) {
-            throw new Error('An error occurred while processing the login');
+            return {
+                status: 500,
+                data: { message: 'User Login Error' },
+            };
         }
     }
 
@@ -162,7 +167,10 @@ export default class AuthService {
                 data: { message: 'Email verified successfully' },
             };
         } catch (error) {
-            throw new Error('An error occurred while verifying the email');
+            return {
+                status: 500,
+                data: { message: 'Email Verification Error' },
+            };
         }
     }
 
@@ -203,7 +211,10 @@ export default class AuthService {
                 },
             };
         } catch (error) {
-            throw new Error('An error occurred while updating user info');
+            return {
+                status: 500,
+                data: { message: 'User Info Update Error' },
+            };
         }
     }
 
@@ -235,9 +246,10 @@ export default class AuthService {
                 data: { message: 'If email exists, reset PIN sent' },
             };
         } catch (error) {
-            throw new Error(
-                'An error occurred while sending the reset password email',
-            );
+            return {
+                status: 500,
+                data: { message: 'Forget Password Error' },
+            };
         }
     }
 
@@ -291,7 +303,10 @@ export default class AuthService {
                 data: { message: 'Password reset successful' },
             };
         } catch (error) {
-            throw new Error('An error occurred while resetting the password');
+            return {
+                status: 500,
+                data: { message: 'Reset Password Error' },
+            };
         }
     }
 
@@ -333,9 +348,10 @@ export default class AuthService {
                 data: { message: 'Verification email resent' },
             };
         } catch (error) {
-            throw new Error(
-                'An error occurred while resending the verification PIN',
-            );
+            return {
+                status: 500,
+                data: { message: 'Resend Pin Error' },
+            };
         }
     }
 
@@ -390,7 +406,10 @@ export default class AuthService {
                 data: { message: 'Password changed successfully' },
             };
         } catch (error) {
-            throw new Error('An error occurred while changing the password');
+            return {
+                status: 500,
+                data: { message: 'Password Change Error' },
+            };
         }
     }
 
@@ -420,7 +439,10 @@ export default class AuthService {
                 data: { message: 'Logged out successfully' },
             };
         } catch (error) {
-            throw new Error('An error occurred while logging out');
+            return {
+                status: 500,
+                data: { message: 'Logout Error' },
+            };
         }
     }
 
@@ -444,7 +466,10 @@ export default class AuthService {
                 data: { message: 'Account deleted successfully' },
             };
         } catch (error) {
-            throw new Error('An error occurred while deleting the account');
+            return {
+                status: 500,
+                data: { message: 'Delete Account Error' },
+            };
         }
     }
 
@@ -486,7 +511,10 @@ export default class AuthService {
                 data: { accessToken: newAccessToken },
             };
         } catch (error) {
-            throw new Error('An error occurred while refreshing the token');
+            return {
+                status: 500,
+                data: { message: 'Refresh Token Error' },
+            };
         }
     }
 }

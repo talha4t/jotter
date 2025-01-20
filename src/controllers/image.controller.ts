@@ -81,7 +81,9 @@ export default class ImageController {
         try {
             const { id } = req.params;
             const { folder } = req.body;
+
             const result = await ImageService.moveImageFile(id, folder);
+
             return res.status(result.status).json(result.data);
         } catch (error) {
             return res.status(500).json({ message: 'Internal server error' });

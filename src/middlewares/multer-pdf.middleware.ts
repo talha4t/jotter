@@ -1,7 +1,9 @@
-import multer, { diskStorage } from 'multer';
 import * as path from 'path';
 import * as fs from 'fs';
+
 import { Request } from 'express';
+
+import multer, { diskStorage } from 'multer';
 
 export const multerOptions = {
     storage: diskStorage({

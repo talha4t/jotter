@@ -1,6 +1,6 @@
 # Jotter
 
-Jotter. It's a Storage Management Backend Application
+Jotter. It's a Storage Management Backend Application (APIs)
 
 ## Notes
 

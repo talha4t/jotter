@@ -50,7 +50,7 @@ pnpm -v
     cp .env.example .env
     ```
 
-    Edit `.env` to configure your database and other settings.
+    Edit `.env` to configure your database and other settings
 
 ### Development
 
